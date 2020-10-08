@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------------------
-//Constants
+// Constants
 //------------------------------------------------------------------------------------------
 const Express = require('express');
 const Sequelize = require('sequelize');
@@ -13,7 +13,7 @@ const sequelize = new Sequelize('doyourbit', 'root', '', {
     dialect: 'mysql'
 });
 
-//Check if connection to db was established.
+// Check if connection to db was established.
 sequelize.authenticate()
     .then(() => {
         console.log('Connection has been established successfully.');
@@ -25,7 +25,7 @@ sequelize.authenticate()
 const Model = Sequelize.Model;
 
 //------------------------------------------------------------------------------------------
-//Models
+// Models
 //------------------------------------------------------------------------------------------
 class User extends Model { }
 User.init({
@@ -137,7 +137,7 @@ UserReq.init({
 });
 
 //------------------------------------------------------------------------------------------
-//Associations
+// Associations
 //------------------------------------------------------------------------------------------
 User.hasMany(UserReq, {
     foreignKey: {
@@ -202,10 +202,10 @@ NgoReq.belongsTo(ReqType, {
 sequelize.sync();
 
 //------------------------------------------------------------------------------------------
-//Routes
+// Routes
 //------------------------------------------------------------------------------------------
 
-//User signup route
+// User signup route
 app.post('/signup/user', [
     // name must not be null
     body('name')
@@ -228,7 +228,7 @@ app.post('/signup/user', [
         where: { u_name: req.body.name}
     }).then(user => {
 
-        //If User already exists, show error
+        // If User already exists, show error
         if (user != null) {
             res.status(409);
             return res.json({
@@ -241,7 +241,7 @@ app.post('/signup/user', [
             where: { u_email: req.body.email }
         }).then(user => {
 
-            //If User name exists check for email
+            // If User name exists check for email
             if (user != null) {
                 res.status(409);
                 return res.json({
@@ -282,7 +282,7 @@ app.post('/signup/user', [
     });
 });
 
-//Ngo signup route
+// Ngo signup route
 app.post('/signup/ngo', [
     // name must be not null and 6 characters long
     body('name')
@@ -311,7 +311,7 @@ app.post('/signup/ngo', [
         where: { n_name: req.body.name }
     }).then(ngo => {
 
-        //If NGO already exists, show error
+        // If NGO already exists, show error
         if (ngo != null) {
             res.status(409);
             return res.json({
@@ -321,10 +321,10 @@ app.post('/signup/ngo', [
         }
 
         Ngo.findOne({
-            where: { email: req.body.email }
+            where: { n_email: req.body.email }
         }).then(ngo => {
 
-            //If NGO name exists check for email
+            // If NGO name exists check for email
             if (ngo != null) {
                 res.status(409);
                 return res.json({
@@ -369,11 +369,75 @@ app.post('/signup/ngo', [
     });
 });
 
+// Login route for User and Ngo
+app.post('/login', [
+    // email must be an valid email
+    body('email')
+        .isEmail().withMessage('Enter a valid email'),
+    // password must be at least 5 chars long
+    body('password')
+        .isLength({ min: 8 }).withMessage('Password mush be 8 characters long')
+], (req, res) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 'error', errors: errors.array() });
+    }
 
-// app.get('/login')
+    User.findOne({
+        where: { u_email: req.body.email, u_password: req.body.password }
+    }).then(user => {
+
+        // If user by this email exists return user id
+        if (user != null) {
+            res.status(200);
+            return res.json({
+                'status': 'success',
+                'u_id': user.u_id,
+                'type': 'user'
+            });
+        }
+
+        Ngo.findOne({
+            where: { n_email: req.body.email, n_password: req.body.password }
+        }).then(ngo => {
+    
+            // If ngo by this email exists return ngo id
+            if (ngo != null) {
+                res.status(200);
+                return res.json({
+                    'status': 'success',
+                    'n_id': ngo.n_id,
+                    'type': 'ngo'
+                });
+            }
+            else if (ngo === null) {
+                res.status(404);
+                return res.json({
+                    'status': 'error',
+                    'errors': [{ 'msg': 'User not found' }]
+                });
+            }
+        }).catch(err => {
+            console.log(err);
+            res.status(500);
+            res.json({
+                'status': 'error',
+                'errors': [{ 'msg': 'Internal server error' }]
+            });
+        });
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.json({
+            'status': 'error',
+            'errors': [{ 'msg': 'Internal server error' }]
+        });
+    });
+});
 
 //------------------------------------------------------------------------------------------
-//Functions
+// Functions
 //------------------------------------------------------------------------------------------
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
