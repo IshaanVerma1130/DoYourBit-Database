@@ -30,10 +30,9 @@ const Model = Sequelize.Model;
 class User extends Model { }
 User.init({
     u_id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        unique: true,
-        autoIncrement: true
+        type: Sequelize.DataTypes.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        primaryKey: true
     },
     u_name: {
         type: Sequelize.STRING,
@@ -59,10 +58,10 @@ User.init({
 class Ngo extends Model { }
 Ngo.init({
     n_id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        unique: true,
-        autoIncrement: true
+        type: Sequelize.DataTypes.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        primaryKey: true
+    
     },
     n_name: {
         type: Sequelize.STRING,
@@ -84,7 +83,7 @@ Ngo.init({
         unique: true
     },
     phone: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         unique: true
     },
@@ -127,33 +126,48 @@ NgoReq.init({
     timestamps: false
 });
 
-class UserReq extends Model { }
-UserReq.init({
-}, {
-    sequelize,
-    modelName: 'UserReq',
-    freezeTableName: true,
-    timestamps: false
-});
+// class UserReq extends Model { }
+// UserReq.init({
+// }, {
+//     sequelize,
+//     modelName: 'UserReq',
+//     freezeTableName: true,
+//     timestamps: false
+// });
 
 //------------------------------------------------------------------------------------------
 // Associations
 //------------------------------------------------------------------------------------------
-User.hasMany(UserReq, {
-    foreignKey: {
-        name: 'u_id',
-        allowNull: false,
-        primaryKey: true
-    }
-});
-UserReq.belongsTo(User, {
-    foreignKey: {
-        name: 'u_id',
-        allowNull: false,
-        primaryKey: true
-    }
-});
+// User.hasMany(UserReq, {
+//     foreignKey: {
+//         name: 'u_id',
+//         allowNull: false,
+//         primaryKey: true
+//     }
+// });
+// UserReq.belongsTo(User, {
+//     foreignKey: {
+//         name: 'u_id',
+//         allowNull: false,
+//         primaryKey: true
+//     }
+// });
 
+// ReqType.hasMany(UserReq, {
+//     foreignKey: {
+//         name: 'req_id',
+//         allowNull: false,
+//         primaryKey: true
+//     }
+// });
+// UserReq.belongsTo(ReqType, {
+//     foreignKey: {
+//         name: 'req_id',
+//         allowNull: false,
+//         primaryKey: true
+//     }
+// });
+                
 Ngo.hasMany(NgoReq, {
     foreignKey: {
         name: 'n_id',
@@ -164,21 +178,6 @@ Ngo.hasMany(NgoReq, {
 NgoReq.belongsTo(Ngo, {
     foreignKey: {
         name: 'n_id',
-        allowNull: false,
-        primaryKey: true
-    }
-});
-
-ReqType.hasMany(UserReq, {
-    foreignKey: {
-        name: 'req_id',
-        allowNull: false,
-        primaryKey: true
-    }
-});
-UserReq.belongsTo(ReqType, {
-    foreignKey: {
-        name: 'req_id',
         allowNull: false,
         primaryKey: true
     }
@@ -200,6 +199,25 @@ NgoReq.belongsTo(ReqType, {
 });
 
 sequelize.sync();
+
+//------------------------------------------------------------------------------------------
+// Initialize default values for ReqTypes
+//------------------------------------------------------------------------------------------
+// ReqType.create({
+//     name: 'clothes'
+// }).then(r => {});
+
+// ReqType.create({
+//     name: 'food'
+// }).then(r => {});
+
+// ReqType.create({
+//     name: 'funds'
+// }).then(r => {});
+
+// ReqType.create({
+//     name: 'stationery'
+// }).then(r => {});
 
 //------------------------------------------------------------------------------------------
 // Routes
@@ -225,7 +243,7 @@ app.post('/signup/user', [
     }
 
     User.findOne({
-        where: { u_name: req.body.name}
+        where: { u_name: req.body.name }
     }).then(user => {
 
         // If User already exists, show error
@@ -261,7 +279,14 @@ app.post('/signup/user', [
                     'u_email': user.u_email,
                     'u_name': user.u_name,
                 }
-            }));
+            })).catch(err => {
+                console.log(err);
+                res.status(500);
+                res.json({
+                    'status': 'error',
+                    'errors': [{ 'msg': 'Internal server error' }]
+                });
+            });
 
         }).catch(err => {
             console.log(err);
@@ -347,8 +372,15 @@ app.post('/signup/ngo', [
                     'n_name': ngo.n_name,
                     'phone': ngo.phone,
                     'address': ngo.address
-                }
-            }));
+                }                
+            })).catch(err => {
+                console.log(err);
+                res.status(500);
+                res.json({
+                    'status': 'error',
+                    'errors': [{ 'msg': 'Internal server error' }]
+                });
+            });
 
         }).catch(err => {
             console.log(err);
@@ -435,6 +467,51 @@ app.post('/login', [
         });
     });
 });
+
+// Route for NGO requests
+app.post('/request/:id', (req, res) => {
+    NgoReq.findOne({
+        where: { n_id: req.body.n_id, req_id: req.params.id }
+    }).then(n_req => {
+
+        // If NGO has already requested, show error
+        if (n_req != null) {
+            res.status(409);
+            return res.json({
+                'status': 'error',
+                'errors': [{ 'msg': 'You have already requested'}]
+            });
+        }
+
+        NgoReq.create({
+            n_id: req.body.n_id,
+            req_id: req.params.id
+        }).then(add_req => res.json({
+            status: 'success',
+            req: {
+                'req_id': add_req.req_id
+            }
+        })).catch(err => {
+            console.log(err);
+            res.status(500);
+            res.json({
+                'status': 'error',
+                'errors': [{ 'msg': 'Internal server error' }]
+            });
+        });
+
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.json({
+            'status': 'error',
+            'errors': [{ 'msg': 'Internal server error' }]
+        });
+    });
+});
+
+// // Route for getting all the NGOs that match the Users request
+// app.post('/donate/:id')
 
 //------------------------------------------------------------------------------------------
 // Functions
