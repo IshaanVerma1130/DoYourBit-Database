@@ -340,7 +340,7 @@ app.post('/signup/ngo', [
                         'n_name': ngo.n_name,
                         'phone': ngo.phone,
                         'address': ngo.address
-                    }                
+                    }              
                 })).catch(err => {
                     console.log(err);
                     res.status(500);
@@ -349,6 +349,7 @@ app.post('/signup/ngo', [
                         'errors': [{ 'msg': 'Internal server error' }]
                     });
                 });
+
             }).catch(err => {
                 console.log(err);
                 res.status(500);
@@ -366,7 +367,7 @@ app.post('/signup/ngo', [
                 'errors': [{ 'msg': 'Internal server error' }]
             });
         });
-
+        
     }).catch(err => {
         console.log(err);
         res.status(500);
