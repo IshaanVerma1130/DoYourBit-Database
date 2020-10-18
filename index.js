@@ -125,48 +125,6 @@ NgoReq.init({
     freezeTableName: true,
     timestamps: false
 });
-
-// class UserReq extends Model { }
-// UserReq.init({
-// }, {
-//     sequelize,
-//     modelName: 'UserReq',
-//     freezeTableName: true,
-//     timestamps: false
-// });
-
-//------------------------------------------------------------------------------------------
-// Associations
-//------------------------------------------------------------------------------------------
-// User.hasMany(UserReq, {
-//     foreignKey: {
-//         name: 'u_id',
-//         allowNull: false,
-//         primaryKey: true
-//     }
-// });
-// UserReq.belongsTo(User, {
-//     foreignKey: {
-//         name: 'u_id',
-//         allowNull: false,
-//         primaryKey: true
-//     }
-// });
-
-// ReqType.hasMany(UserReq, {
-//     foreignKey: {
-//         name: 'req_id',
-//         allowNull: false,
-//         primaryKey: true
-//     }
-// });
-// UserReq.belongsTo(ReqType, {
-//     foreignKey: {
-//         name: 'req_id',
-//         allowNull: false,
-//         primaryKey: true
-//     }
-// });
                 
 Ngo.hasMany(NgoReq, {
     foreignKey: {
@@ -199,25 +157,21 @@ NgoReq.belongsTo(ReqType, {
 });
 
 sequelize.sync();
-
 //------------------------------------------------------------------------------------------
 // Initialize default values for ReqTypes
 //------------------------------------------------------------------------------------------
-// ReqType.create({
-//     name: 'clothes'
-// }).then(r => {});
 
-// ReqType.create({
-//     name: 'food'
-// }).then(r => {});
+// const clothes = ReqType.build({ name: "clothes" });
+// clothes.save();
 
-// ReqType.create({
-//     name: 'funds'
-// }).then(r => {});
+// const food = ReqType.build({ name: "food" });
+// food.save();
 
-// ReqType.create({
-//     name: 'stationery'
-// }).then(r => {});
+// const funds = ReqType.build({ name: "funds" });
+// funds.save();
+
+// const stationery = ReqType.build({ name: "stationery" });
+// stationery.save();
 
 //------------------------------------------------------------------------------------------
 // Routes
@@ -251,7 +205,7 @@ app.post('/signup/user', [
             res.status(409);
             return res.json({
                 'status': 'error',
-                'errors': [{ 'msg': 'User already exists' }]
+                'errors': [{ 'msg': 'Username taken' }]
             });
         }
 
@@ -336,12 +290,12 @@ app.post('/signup/ngo', [
         where: { n_name: req.body.name }
     }).then(ngo => {
 
-        // If NGO already exists, show error
+        // If NGO with this name already exists, show error
         if (ngo != null) {
             res.status(409);
             return res.json({
                 'status': 'error',
-                'errors': [{ 'msg': 'Ngo already exists' }]
+                'errors': [{ 'msg': 'Ngo already exists with this name' }]
             });
         }
 
@@ -349,31 +303,53 @@ app.post('/signup/ngo', [
             where: { n_email: req.body.email }
         }).then(ngo => {
 
-            // If NGO name exists check for email
+            // If NGO name doesnot exists check for email
             if (ngo != null) {
                 res.status(409);
                 return res.json({
                     'status': 'error',
-                    'errors': [{ 'msg': 'Email already exists' }]
+                    'errors': [{ 'msg': 'Ngo already exists with this email' }]
                 });
             }
 
-            Ngo.create({
-                n_email: req.body.email,
-                n_password: req.body.password,
-                n_name: req.body.name,
-                phone: req.body.phone,
-                address: req.body.address
-            }).then(ngo => res.json({
-                status: 'success',
-                ngo: {
-                    'n_id': ngo.n_id,
-                    'n_email': ngo.n_email,
-                    'n_name': ngo.n_name,
-                    'phone': ngo.phone,
-                    'address': ngo.address
-                }                
-            })).catch(err => {
+            Ngo.findOne({
+                where: { address: req.body.address }
+            }).then(ngo => {
+
+                // If NGO email doesnot exist check for address
+                if (ngo != null) {
+                    res.status(409);
+                    return res.json({
+                        'status': 'error',
+                        'errors': [{ 'msg': 'Ngo already exists with this address' }]
+                    });
+                }
+                
+                // If all tests pass create the NGO
+                Ngo.create({
+                    n_email: req.body.email,
+                    n_password: req.body.password,
+                    n_name: req.body.name,
+                    phone: req.body.phone,
+                    address: req.body.address
+                }).then(ngo => res.json({
+                    status: 'success',
+                    ngo: {
+                        'n_id': ngo.n_id,
+                        'n_email': ngo.n_email,
+                        'n_name': ngo.n_name,
+                        'phone': ngo.phone,
+                        'address': ngo.address
+                    }                
+                })).catch(err => {
+                    console.log(err);
+                    res.status(500);
+                    res.json({
+                        'status': 'error',
+                        'errors': [{ 'msg': 'Internal server error' }]
+                    });
+                });
+            }).catch(err => {
                 console.log(err);
                 res.status(500);
                 res.json({
@@ -510,8 +486,14 @@ app.post('/request/:id', (req, res) => {
     });
 });
 
-// // Route for getting all the NGOs that match the Users request
-// app.post('/donate/:id')
+// Route for getting all the NGOs that match the Users request
+app.get('/donate/:id', async(req, res) => {
+    const ngos = await NgoReq.sequelize.query(
+        'SELECT n_name,address FROM Ngo WHERE n_id IN (SELECT n_id FROM NgoReq WHERE req_id = ?)',
+        {replacements: [req.params.id], type: NgoReq.sequelize.QueryTypes.SELECT});
+    
+    res.json(ngos);
+});
 
 //------------------------------------------------------------------------------------------
 // Functions
