@@ -8,8 +8,8 @@ const { body, validationResult } = require('express-validator');
 const app = Express();
 app.use(Express.json());
 
-const sequelize = new Sequelize('doyourbit', process.env.username, process.env.password, {
-    host: process.env.CLEARDB_DATABASE_URL,
+const sequelize = new Sequelize(process.env.database, process.env.username, process.env.password, {
+    host: process.env.host,
     dialect: 'mysql'
 });
 
