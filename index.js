@@ -9,7 +9,7 @@ const app = Express();
 app.use(Express.json());
 
 const sequelize = new Sequelize('doyourbit', process.env.username, process.env.password, {
-    host: process.env.host,
+    host: process.env.CLEARDB_DATABASE_URL,
     dialect: 'mysql'
 });
 
