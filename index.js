@@ -213,7 +213,7 @@ app.post('/signup/user', [
             where: { u_email: req.body.email }
         }).then(user => {
 
-            // If User name exists check for email
+            // If User name doesnot exists check for email
             if (user != null) {
                 res.status(409);
                 return res.json({
@@ -465,9 +465,7 @@ app.post('/request/:id', (req, res) => {
             req_id: req.params.id
         }).then(add_req => res.json({
             status: 'success',
-            req: {
-                'req_id': add_req.req_id
-            }
+            'req_id': add_req.req_id
         })).catch(err => {
             console.log(err);
             res.status(500);
