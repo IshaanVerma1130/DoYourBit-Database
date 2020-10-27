@@ -498,7 +498,7 @@ app.get('/donate/:id', async(req, res) => {
 });
 
 // Route for updating NGO information
-app.put('/update/ngo/about', (req, res) => {
+app.patch('/update/ngo/about', (req, res) => {
     Ngo.update({
         where: { n_id: req.body.n_id }
     }).then(ngo => {
