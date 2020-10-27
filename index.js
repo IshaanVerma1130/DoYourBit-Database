@@ -417,6 +417,9 @@ app.post('/login', [
                 return res.json({
                     'status': 'success',
                     'n_id': ngo.n_id,
+                    'address': ngo.address,
+                    'about': ngo.about,
+                    'phone': ngo.phone,
                     'type': 'ngo'
                 });
             }
@@ -488,10 +491,43 @@ app.post('/request/:id', (req, res) => {
 // Route for getting all the NGOs that match the Users request
 app.get('/donate/:id', async(req, res) => {
     const ngos = await NgoReq.sequelize.query(
-        'SELECT n_name,address FROM Ngo WHERE n_id IN (SELECT n_id FROM NgoReq WHERE req_id = ?)',
+        'SELECT n_id,n_name,address,phone,about FROM Ngo WHERE n_id IN (SELECT n_id FROM NgoReq WHERE req_id = ?)',
         {replacements: [req.params.id], type: NgoReq.sequelize.QueryTypes.SELECT});
     
     res.json(ngos);
+});
+
+// Route for updating NGO information
+app.put('/update/ngo/about', (req, res) => {
+    Ngo.findOne({
+        where: { n_id: req.body.n_id }
+    }).then(ngo => {
+
+        // If NGO doesnot exist show error
+        if (ngo == null) {
+            res.status(404);
+            return res.json({
+                'status': 'error',
+                'errors': [{ 'msg': 'Ngo doesnot exist' }]
+            });
+        }
+
+        else {
+            res.status(200);
+            ngo.about = req.body.about
+            return res.json({
+                'status': 'success',
+                'about': req.body.about
+            });
+        }
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+        res.json({
+            'status': 'error',
+            'errors': [{ 'msg': 'Internal server error' }]
+        });
+    });
 });
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
