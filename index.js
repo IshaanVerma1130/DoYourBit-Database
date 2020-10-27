@@ -498,36 +498,49 @@ app.get('/donate/:id', async(req, res) => {
 });
 
 // Route for updating NGO information
-app.patch('/update/ngo/about', (req, res) => {
-    Ngo.update({
-        where: { n_id: req.body.n_id }
-    }).then(ngo => {
+app.patch('/update/ngo/about', async(req, res) => {
 
-        // If NGO doesnot exist show error
-        if (!ngo) {
-            res.status(404);
-            return res.json({
-                'status': 'error',
-                'errors': [{ 'msg': 'Ngo doesnot exist' }]
-            });
-        }
+    await Ngo.sequelize.query(
+        'UPDATE Ngo SET about = ? WHERE n_id = ?',
+        {replacements: [req.body.about, req.body.n_id], type: Ngo.sequelize.QueryTypes.UPDATE});
 
-        else {
-            res.status(200);
-            ngo.about = req.body.about
-            return res.json({
-                'status': 'success',
-                'about': req.body.about
-            });
-        }
-    }).catch(err => {
-        console.log(err);
-        res.status(500);
-        res.json({
-            'status': 'error',
-            'errors': [{ 'msg': 'Internal server error' }]
-        });
+    res.json({
+        'status': 'success',
+        'about': req.body.about
     });
+
+
+
+
+    // Ngo.update({
+    //     where: { n_id: req.body.n_id }
+    // }).then(ngo => {
+
+    //     // If NGO doesnot exist show error
+    //     if (!ngo) {
+    //         res.status(404);
+    //         return res.json({
+    //             'status': 'error',
+    //             'errors': [{ 'msg': 'Ngo doesnot exist' }]
+    //         });
+    //     }
+
+    //     else {
+    //         res.status(200);
+    //         ngo.about = req.body.about
+    //         return res.json({
+    //             'status': 'success',
+    //             'about': req.body.about
+    //         });
+    //     }
+    // }).catch(err => {
+    //     console.log(err);
+    //     res.status(500);
+    //     res.json({
+    //         'status': 'error',
+    //         'errors': [{ 'msg': 'Internal server error' }]
+    //     });
+    // });
 });
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
