@@ -504,7 +504,7 @@ app.patch('/update/ngo/about', (req, res) => {
     }).then(ngo => {
 
         // If NGO doesnot exist show error
-        if (ngo == null) {
+        if (!ngo) {
             res.status(404);
             return res.json({
                 'status': 'error',
