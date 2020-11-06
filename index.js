@@ -403,6 +403,7 @@ app.post('/login', [
             return res.json({
                 'status': 'success',
                 'u_id': user.u_id,
+                'u_name': user.u_name,
                 'type': 'user'
             });
         }
@@ -418,6 +419,7 @@ app.post('/login', [
                     'status': 'success',
                     'n_id': ngo.n_id,
                     'address': ngo.address,
+                    'n_name': ngo.n_name,
                     'about': ngo.about,
                     'phone': ngo.phone,
                     'type': 'ngo'
