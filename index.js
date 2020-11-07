@@ -497,7 +497,10 @@ app.get('/donate/:id', async(req, res) => {
         'SELECT n_id,n_name,address,phone,about FROM Ngo WHERE n_id IN (SELECT n_id FROM NgoReq WHERE req_id = ?)',
         {replacements: [req.params.id], type: NgoReq.sequelize.QueryTypes.SELECT});
     
-    res.json(ngos);
+    res.json({
+        'status': "success",
+        'ngo': ngos
+    });
 });
 
 // Route for updating NGO information
