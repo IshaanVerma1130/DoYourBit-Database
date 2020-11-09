@@ -157,21 +157,6 @@ NgoReq.belongsTo(ReqType, {
 });
 
 sequelize.sync();
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Initialize default values for ReqTypes
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-// const clothes = ReqType.build({ name: "clothes" });
-// clothes.save();
-
-// const food = ReqType.build({ name: "food" });
-// food.save();
-
-// const funds = ReqType.build({ name: "funds" });
-// funds.save();
-
-// const stationery = ReqType.build({ name: "stationery" });
-// stationery.save();
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Routes
@@ -503,7 +488,9 @@ app.get('/donate/:id', async(req, res) => {
     });
 });
 
-// Route for updating NGO information
+// Routes for updating NGO information
+
+// About
 app.patch('/update/ngo/about', async(req, res) => {
 
     await Ngo.sequelize.query(
@@ -514,39 +501,32 @@ app.patch('/update/ngo/about', async(req, res) => {
         'status': 'success',
         'about': req.body.about
     });
+});
 
+// Address
+app.patch('/update/ngo/address', async(req, res) => {
 
+    await Ngo.sequelize.query(
+        'UPDATE Ngo SET address = ? WHERE n_id = ?',
+        {replacements: [req.body.address, req.body.n_id], type: Ngo.sequelize.QueryTypes.UPDATE});
 
+    res.json({
+        'status': 'success',
+        'address': req.body.address
+    });
+});
 
-    // Ngo.update({
-    //     where: { n_id: req.body.n_id }
-    // }).then(ngo => {
+// Phone
+app.patch('/update/ngo/phone', async(req, res) => {
 
-    //     // If NGO doesnot exist show error
-    //     if (!ngo) {
-    //         res.status(404);
-    //         return res.json({
-    //             'status': 'error',
-    //             'errors': [{ 'msg': 'Ngo doesnot exist' }]
-    //         });
-    //     }
+    await Ngo.sequelize.query(
+        'UPDATE Ngo SET phone = ? WHERE n_id = ?',
+        {replacements: [req.body.phone, req.body.n_id], type: Ngo.sequelize.QueryTypes.UPDATE});
 
-    //     else {
-    //         res.status(200);
-    //         ngo.about = req.body.about
-    //         return res.json({
-    //             'status': 'success',
-    //             'about': req.body.about
-    //         });
-    //     }
-    // }).catch(err => {
-    //     console.log(err);
-    //     res.status(500);
-    //     res.json({
-    //         'status': 'error',
-    //         'errors': [{ 'msg': 'Internal server error' }]
-    //     });
-    // });
+    res.json({
+        'status': 'success',
+        'phone': req.body.phone
+    });
 });
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
