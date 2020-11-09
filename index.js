@@ -494,7 +494,7 @@ app.get('/donate/:id', async(req, res) => {
 app.patch('/update/ngo/about', [
     // About must be less than 500 characters
     body('about')
-        .isLength({max: 250}).withMessage('Message should be less than 250 characters'),
+        .isLength({max: 250, min: 100}).withMessage('Message should be between 100 and 250 characters'),
 ], async(req, res) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
