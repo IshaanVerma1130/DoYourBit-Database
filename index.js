@@ -173,7 +173,7 @@ app.post('/signup/user', [
         .isEmail().withMessage('Enter a valid email'),
     // password must be at least 5 chars long
     body('password')
-        .isLength({ min: 8 }).withMessage('Password mush be 8 characters long')
+        .isLength({ min: 8 }).withMessage('Password must be 8 characters long')
 ], (req, res) => {
     // Finds the validation errors in this request and wraps them in an object with handy functions
     const errors = validationResult(req);
@@ -256,7 +256,7 @@ app.post('/signup/ngo', [
     body('email')
         .isEmail().withMessage('Enter a valid email'),
     // password must be at least 8 chars long
-    body('password').isLength({ min: 8 }).withMessage('Password mush be 8 characters long'),
+    body('password').isLength({ min: 8 }).withMessage('Password must be 8 characters long'),
     // phone number must be og 10 digits
     body('phone')
         .isLength({ min: 10, max: 10 }).withMessage('Phone number less than 10 digits')
