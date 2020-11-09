@@ -513,7 +513,16 @@ app.patch('/update/ngo/about', [
 });
 
 // Address
-app.patch('/update/ngo/address', async(req, res) => {
+app.patch('/update/ngo/address', [
+    // address is not null
+    body('address')
+        .notEmpty().withMessage('Address cannot be empty')
+], async(req, res) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 'error', errors: errors.array() });
+    }
 
     await Ngo.sequelize.query(
         'UPDATE Ngo SET address = ? WHERE n_id = ?',
@@ -526,7 +535,17 @@ app.patch('/update/ngo/address', async(req, res) => {
 });
 
 // Phone
-app.patch('/update/ngo/phone', async(req, res) => {
+app.patch('/update/ngo/phone', [
+    // phone number must be og 10 digits
+    body('phone')
+        .isLength({ min: 10, max: 10 }).withMessage('Phone number less than 10 digits')
+        .isNumeric().withMessage('Enter a valid phone number')
+], async(req, res) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 'error', errors: errors.array() });
+    }
 
     await Ngo.sequelize.query(
         'UPDATE Ngo SET phone = ? WHERE n_id = ?',
