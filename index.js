@@ -491,7 +491,16 @@ app.get('/donate/:id', async(req, res) => {
 // Routes for updating NGO information
 
 // About
-app.patch('/update/ngo/about', async(req, res) => {
+app.patch('/update/ngo/about', [
+    // About must be less than 500 characters
+    body('about')
+        .isLength({max: 250}).withMessage('Message should be less than 250 characters'),
+], async(req, res) => {
+    // Finds the validation errors in this request and wraps them in an object with handy functions
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 'error', errors: errors.array() });
+    }
 
     await Ngo.sequelize.query(
         'UPDATE Ngo SET about = ? WHERE n_id = ?',
