@@ -405,6 +405,7 @@ app.post('/login', [
                     'n_id': ngo.n_id,
                     'address': ngo.address,
                     'n_name': ngo.n_name,
+                    'n_email': ngo.n_email,
                     'about': ngo.about,
                     'phone': ngo.phone,
                     'type': 'ngo'
